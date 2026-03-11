@@ -111,13 +111,15 @@ impl RasterTriangle {
         )
     }
 
-    pub fn interpolate(self, p: Vec2, av: f32, bv: f32, cv: f32) -> f32 {
+    /// interpolate a value of p. If interpolate many values, prefer storing 
+    /// interpolate_inv_w then use interpolate_with_inv_w
+    pub fn interpolate(self, p: Vec2, a_val: f32, b_val: f32, c_val: f32) -> f32 {
         let (alpha, beta, gamma): (f32, f32, f32) = self.barycentric(p);
 
         let numerator: f32 =
-            alpha * av * self.a.inv_w +
-            beta  * bv * self.b.inv_w +
-            gamma * cv * self.c.inv_w;
+            alpha * a_val * self.a.inv_w +
+            beta  * b_val * self.b.inv_w +
+            gamma * c_val * self.c.inv_w;
 
         let denominator: f32 = 
             alpha * self.a.inv_w +
@@ -125,5 +127,28 @@ impl RasterTriangle {
             gamma * self.c.inv_w;
 
         numerator / denominator
+    }
+
+    /// get inverse w for the current point. Useful to not recalculate interpolated
+    /// inverse w when interpolate many values.
+    pub fn interpolate_inv_w(self, p: Vec2) -> f32 {
+        let (alpha, beta, gamma): (f32, f32, f32) = self.barycentric(p);
+        alpha * self.a.inv_w +
+        beta  * self.b.inv_w +
+        gamma * self.c.inv_w
+    }
+
+    /// Interpolate, use when you store you inverse w beforehand
+    /// useful when you want to interpolate a lot of values,
+    /// where you don't have to recalculate interpolated inverse w every time.
+    pub fn interpolate_with_inv_w(self, p: Vec2, p_inv_w: f32, a_val: f32, b_val: f32, c_val: f32) -> f32 {
+        let (alpha, beta, gamma): (f32, f32, f32) = self.barycentric(p) ;
+
+        let numerator: f32 =
+            alpha * a_val * self.a.inv_w +
+            beta  * b_val * self.b.inv_w +
+            gamma * c_val * self.c.inv_w;
+
+        numerator / p_inv_w
     }
 }
