@@ -101,17 +101,19 @@ impl CosmicSimulator {
     // Neptune,    30.06,                          "59,800",                       "24,622",       "[63, 115, 255] Bright Blue",   5
 
     /* This is the design choice detail
-    Body       | Radius     | Orbit Center    | Gap to Prev
-    ------------------------------------------------------------
-    Sun        | 31.48      | 0.0000          | N/A
-    Mercury    | 9.29       | 41.2706         | 0.5
-    Venus      | 12.04      | 63.0942         | 0.5
-    Earth      | 12.22      | 87.8475         | 0.5
-    Mars       | 10.20      | 110.7639        | 0.5
-    Jupiter    | 24.22      | 145.6835        | 0.5
-    Saturn     | 22.99      | 193.3891        | 0.5
-    Uranus     | 18.13      | 235.0032        | 0.5
-    Neptune    | 17.97      | 271.6055        | 0.5
+     * I decide to keep the radius squared scale linearly to the original data's radius
+     * And make further bodies viewable
+     * Body       | Radius     | Orbit Center    | Gap to Prev
+     * ------------------------------------------------------------
+     * Sun        | 31.48      | 0.0000          | N/A
+     * Mercury    | 9.29       | 41.2706         | 0.5
+     * Venus      | 12.04      | 63.0942         | 0.5
+     * Earth      | 12.22      | 87.8475         | 0.5
+     * Mars       | 10.20      | 110.7639        | 0.5
+     * Jupiter    | 24.22      | 145.6835        | 0.5
+     * Saturn     | 22.99      | 193.3891        | 0.5
+     * Uranus     | 18.13      | 235.0032        | 0.5
+     * Neptune    | 17.97      | 271.6055        | 0.5
     */
 
     pub fn new()->Self {

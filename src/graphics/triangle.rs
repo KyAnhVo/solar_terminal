@@ -53,8 +53,7 @@ impl Vertex {
     }
 }
 
-/// Represents projected vertex, used for
-/// perspective correct interpolation
+/// Represents projected vertex, used for perspective correct interpolation
 #[derive(Clone, Copy)]
 pub struct RasterVertex {
     pub pos: Vec3,
@@ -150,5 +149,33 @@ impl RasterTriangle {
             gamma * c_val * self.c.inv_w;
 
         numerator / p_inv_w
+    }
+
+    /// Interpolate depth of point inside triangle (no checking). Prefer
+    /// interpolate_depth_with_inv_w with interpolate_inv_w beforehand.
+    pub fn interpolate_depth(self, p: Vec2) -> f32 {
+        self.interpolate(p, self.a.pos.z, self.b.pos.z, self.c.pos.z)
+    }
+
+    /// Interpolate depth of point given a precalculated p_inv_w. This plus interpolate_inv_w is
+    /// equivalent to interpolate_depth but we allow storing of inv w for other interpolations.
+    pub fn interpolate_depth_with_inv_w(self, p: Vec2, p_inv_w: f32) -> f32 {
+        self.interpolate_with_inv_w(p, p_inv_w, self.a.pos.z, self.b.pos.z, self.c.pos.z)
+    }
+
+    pub fn interpolate_color(self, p: Vec2) -> Color {
+        Color::new(
+            self.interpolate(p, self.a.rgb.r as f32, self.b.rgb.r as f32, self.c.rgb.r as f32) as u8,
+            self.interpolate(p, self.a.rgb.g as f32, self.b.rgb.g as f32, self.c.rgb.g as f32) as u8,
+            self.interpolate(p, self.a.rgb.b as f32, self.b.rgb.b as f32, self.c.rgb.b as f32) as u8,
+        )
+    }
+
+    pub fn interpolate_color_with_inv_w(self, p: Vec2, p_inv_w: f32) -> Color {
+        Color::new(
+            self.interpolate_with_inv_w(p, p_inv_w, self.a.rgb.r as f32, self.b.rgb.r as f32, self.c.rgb.r as f32) as u8,
+            self.interpolate_with_inv_w(p, p_inv_w, self.a.rgb.g as f32, self.b.rgb.g as f32, self.c.rgb.g as f32) as u8,
+            self.interpolate_with_inv_w(p, p_inv_w, self.a.rgb.b as f32, self.b.rgb.b as f32, self.c.rgb.b as f32) as u8,
+        )
     }
 }
