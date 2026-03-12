@@ -30,8 +30,11 @@ pub struct Color {
 impl Color {
     pub const WHITE: Color      = Color {   r: 255, g: 255, b: 255  };
     pub const BLACK: Color      = Color {   r: 0,   g: 0,   b: 0    };
-    pub const SPACE_BLUE: Color = Color {   r: 26,  g: 43,  b: 76   };
+    pub const SPACE_BLUE: Color = Color {   r: 10,  g: 15,  b: 40   };
     pub const GREY: Color       = Color {   r: 128, g: 128, b: 128  };
+    pub const RED: Color        = Color {   r: 255, g: 0,   b: 0    };
+    pub const BLUE: Color       = Color {   r: 0,   g: 0,   b: 255  };
+    pub const GREEN: Color      = Color {   r: 0,   g: 255, b: 0    };
 
     pub fn new(r: u8, g: u8, b: u8) -> Self { Self { r, g, b, } }
 }

@@ -29,7 +29,7 @@ impl Rasterizer {
     }
 
     pub fn clear(&mut self) {
-        self.frame_buff.fill(Color::BLACK);
+        self.frame_buff.fill(Color::SPACE_BLUE);
         self.depth_buff.fill(f32::INFINITY);
     }
 

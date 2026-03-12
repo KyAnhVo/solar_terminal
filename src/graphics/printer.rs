@@ -31,9 +31,11 @@ impl Printer {
         self.buff.clear();
         self.buff.extend_from_slice(Printer::START_SEQUENCE);
 
-        let mut curr_color: Color = Color::BLACK; // background color
+        let mut curr_fg_color: Color = Color::BLACK; // background color
+        let mut curr_bg_color: Color = Color::BLACK; // foreground color
         if self.printer_type == PrinterType::Color {
             self.buff.extend_from_slice(b"\x1b[38;2;0;0;0m");
+            self.buff.extend_from_slice(b"\x1b[48;2;0;0;0m");
         };
 
         for i in 0..self.height {
@@ -45,31 +47,39 @@ impl Printer {
             for j in 0..self.width {
                 let first_color: Color = color[i_frame * self.width + j];
                 let second_color: Color = color[(i_frame + 1) * self.width + j];
-                // calculate avr color by add then div 2 will overflow,
-                // so we do this. Might induce error, but it's at most 2,
-                // so we dont really care.
-                let avr_color: Color = Color::new(
-                    ((first_color.r as u32 + second_color.r as u32) / 2) as u8, 
-                    ((first_color.g as u32 + second_color.g as u32) / 2) as u8, 
-                    ((first_color.b as u32 + second_color.b as u32) / 2) as u8, 
-                );
+
                 
                 match self.printer_type {
+
                     PrinterType::Ascii => {
+                        // calculate avr color by add then div 2 will overflow,
+                        // so we do this. Might induce error, but it's at most 2,
+                        // so we dont really care.
+                        let avr_color: Color = Color::new(
+                            ((first_color.r as u32 + second_color.r as u32) / 2) as u8, 
+                            ((first_color.g as u32 + second_color.g as u32) / 2) as u8, 
+                            ((first_color.b as u32 + second_color.b as u32) / 2) as u8, 
+                        );
                         let luminance: f32  = (avr_color.r as f32 * 0.2126 +
                                                avr_color.g as f32 * 0.7152 +
                                                avr_color.b as f32 * 0.0722) / 255.0;
+                        let lum_gamma_corrected: f32 = luminance.powf(2.2);
                         let ramp_ind: usize = (luminance * (Self::RAMP.len() - 1) as f32) as usize;
                         let char_to_print: u8 = Self::RAMP[ramp_ind];
                         self.buff.push(char_to_print);
                     }
                     PrinterType::Color => {
-                        if curr_color != avr_color {
-                            curr_color = avr_color;
-                            let color_code = format!("\x1b[38;2;{};{};{}m", curr_color.r, curr_color.g, curr_color.b);
+                        if curr_fg_color != first_color {
+                            curr_fg_color = first_color;
+                            let color_code = format!("\x1b[38;2;{};{};{}m", curr_fg_color.r, curr_fg_color.g, curr_fg_color.b);
                             self.buff.extend_from_slice(color_code.as_bytes());
                         }
-                        self.buff.extend_from_slice("█".as_bytes());
+                        if curr_bg_color != second_color {
+                            curr_bg_color = second_color;
+                            let color_code = format!("\x1b[48;2;{};{};{}m", curr_bg_color.r, curr_bg_color.g, curr_bg_color.b);
+                            self.buff.extend_from_slice(color_code.as_bytes());
+                        }
+                        self.buff.extend_from_slice("▀".as_bytes());
                     }
                 };
             }
