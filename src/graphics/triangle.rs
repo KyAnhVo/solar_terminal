@@ -37,6 +37,28 @@ impl Color {
     pub const GREEN: Color      = Color {   r: 0,   g: 255, b: 0    };
 
     pub fn new(r: u8, g: u8, b: u8) -> Self { Self { r, g, b, } }
+
+    pub fn luminance(self, gamma: f32) -> f32 {
+        ((self.r as f32 * 0.2126
+         + self.g as f32 * 0.7152
+         + self.b as f32 * 0.0722) / 255.0).powf(gamma)
+    }
+    pub fn edge_detection(self, others: &[Self]) -> bool{
+        let others_count: i32 = others.len() as i32;
+        let mut r: i32 = self.r as i32 * others_count;
+        let mut g: i32 = self.g as i32 * others_count;
+        let mut b: i32 = self.b as i32 * others_count;
+        
+        let err_term: i32 = 2;
+
+        for other in others {
+            r -= other.r as i32;
+            g -= other.g as i32;
+            b -= other.b as i32;
+        }
+
+        r.abs() <= err_term || g.abs() <= err_term || b.abs() <= err_term
+    }
 }
 
 /// represents vertices in world space
@@ -79,6 +101,13 @@ impl RasterVertex {
             inv_w: 1.0 / pos.w,
         }
     }
+
+    pub fn from_world_view(p: Vertex, m_cam: Mat4) -> Self {
+        Self::new(
+            m_cam * p.pos, 
+            p.rgb
+        )
+    }
 }
 
 /// Represents transformed triangle
@@ -98,6 +127,14 @@ impl RasterTriangle {
         let normal: Vec3 = ab.cross(ac).normalize();
 
         Self { a, b, c, normal }
+    }
+
+    pub fn from_world_view(tri: Triangle, m_cam: Mat4) -> Self {
+        Self::new(
+            RasterVertex::from_world_view(tri.a, m_cam),
+            RasterVertex::from_world_view(tri.b, m_cam),
+            RasterVertex::from_world_view(tri.c, m_cam),
+        )
     }
 
     pub fn is_inside(self, p: Vec2) -> bool {

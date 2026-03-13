@@ -2,9 +2,10 @@
 pub enum PrinterType {
     Ascii,
     Color,
+    Edge,
 }
 
-use crate::graphics::triangle::{self, Color};
+use crate::graphics::triangle::{Color};
 
 pub struct Printer {
     pub printer_type: PrinterType,
@@ -50,7 +51,6 @@ impl Printer {
 
                 
                 match self.printer_type {
-
                     PrinterType::Ascii => {
                         // calculate avr color by add then div 2 will overflow,
                         // so we do this. Might induce error, but it's at most 2,
@@ -60,10 +60,7 @@ impl Printer {
                             ((first_color.g as u32 + second_color.g as u32) / 2) as u8, 
                             ((first_color.b as u32 + second_color.b as u32) / 2) as u8, 
                         );
-                        let luminance: f32  = (avr_color.r as f32 * 0.2126 +
-                                               avr_color.g as f32 * 0.7152 +
-                                               avr_color.b as f32 * 0.0722) / 255.0;
-                        let lum_gamma_corrected: f32 = luminance.powf(2.2);
+                        let luminance: f32  = avr_color.luminance(2.2);
                         let ramp_ind: usize = (luminance * (Self::RAMP.len() - 1) as f32) as usize;
                         let char_to_print: u8 = Self::RAMP[ramp_ind];
                         self.buff.push(char_to_print);
@@ -80,6 +77,9 @@ impl Printer {
                             self.buff.extend_from_slice(color_code.as_bytes());
                         }
                         self.buff.extend_from_slice("▀".as_bytes());
+                    }
+                    PrinterType::Edge => {
+
                     }
                 };
             }

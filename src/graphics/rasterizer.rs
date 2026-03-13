@@ -62,7 +62,7 @@ impl Rasterizer {
         }
     }
 
-    pub fn render_triangle(&mut self, triangle: RasterTriangle) {
+    pub fn render_triangle(&mut self, &triangle: &RasterTriangle) {
         let (a, b, c): (Vec3, Vec3, Vec3) = (
             triangle.a.pos,
             triangle.b.pos,

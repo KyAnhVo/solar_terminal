@@ -1,8 +1,9 @@
 use std::f32;
-use rand::{RngExt};
-use glam::{Mat3, Vec3};
 
-use crate::graphics::triangle::Color;
+use rand::{RngExt};
+use glam::{Mat3, Mat4, Vec3, Vec4};
+
+use crate::graphics::triangle::{Color, Triangle, Vertex};
 
 #[derive(Clone, Copy)]
 pub struct CosmicBody {
@@ -28,6 +29,32 @@ pub struct CosmicBody {
 }
 
 impl CosmicBody {
+    fn rot_x(theta: f32) -> Mat3 {
+        let (sin, cos): (f32, f32) = (theta.sin(), theta.cos());
+        Mat3::from_cols(
+            Vec3::new(1.0, 0.0, 0.0),
+            Vec3::new(0.0, cos, sin),
+            Vec3::new(0.0, -sin, cos)
+        )
+    }
+
+    fn rot_y(theta: f32) -> Mat3 {
+        let (sin, cos): (f32, f32) = (theta.sin(), theta.cos());
+        Mat3::from_cols(
+            Vec3::new(cos, 0.0, -sin),
+            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::new(sin, 0.0, cos),
+        )
+    }
+
+    fn rot_z(theta: f32) -> Mat3 {
+        let (sin, cos): (f32, f32) = (theta.sin(), theta.cos());
+        Mat3::from_cols(
+            Vec3::new(cos, sin, 0.0),
+            Vec3::new(-sin, cos, 0.0),
+            Vec3::new(0.0, 0.0, 1.0),
+        )
+    }
 
     pub fn new(
         original_pos: Vec3, 
@@ -54,6 +81,9 @@ impl CosmicBody {
     }
 
     pub fn orbit(&mut self, days_passed: u32) {
+        if self.orbital_angular_velocity.abs() < f32::EPSILON {
+            return;
+        }
         let rad: f32 = self.orbital_angular_velocity * days_passed as f32;
         let r: Mat3 = if self.rotational_normal == Vec3::Z {
             Mat3::from_cols(
@@ -78,6 +108,68 @@ impl CosmicBody {
         };
 
         self.pos = r * self.original_pos;
+    }
+
+    pub fn to_triangles(self) -> Vec<Triangle> {
+        let mut triangles: Vec<Triangle> = vec![];
+        let mut vertices: Vec<Vec<Vertex>> = vec![vec![]; 7];
+
+        let equator: Vec3 = Vec3::new(1.0, 0.0, 0.0);
+        let north30: Vec3 = Self::rot_z(f32::consts::PI /  6.0) * equator;
+        let north60: Vec3 = Self::rot_z(f32::consts::PI /  3.0) * equator;
+        let north90: Vec3 = Self::rot_z(f32::consts::PI /  2.0) * equator;
+        let south30: Vec3 = Self::rot_z(f32::consts::PI / -6.0) * equator;
+        let south60: Vec3 = Self::rot_z(f32::consts::PI / -3.0) * equator;
+        let south90: Vec3 = Self::rot_z(f32::consts::PI / -2.0) * equator;
+
+        // rotate around y, append theses new vectors in
+
+        for i in 0..=8 {
+            let angle: f32 = f32::consts::PI / 4.0 * i as f32;
+            let rot: Mat3 = Self::rot_y(angle);
+
+            let n90: Vec3 = rot * north90;
+            let n60: Vec3 = rot * north60;
+            let n30: Vec3 = rot * north30;
+            let eq0: Vec3 = rot * equator;
+            let s30: Vec3 = rot * south30;
+            let s60: Vec3 = rot * south60;
+            let s90: Vec3 = rot * south90;
+
+            vertices[0].push(Vertex::new(n90.x, n90.y, n90.z, self.color));
+            vertices[1].push(Vertex::new(n60.x, n60.y, n60.z, self.color));
+            vertices[2].push(Vertex::new(n30.x, n30.y, n30.z, self.color));
+            vertices[3].push(Vertex::new(eq0.x, eq0.y, eq0.z, self.color));
+            vertices[4].push(Vertex::new(s30.x, s30.y, s30.z, self.color));
+            vertices[5].push(Vertex::new(s60.x, s60.y, s60.z, self.color));
+            vertices[6].push(Vertex::new(s90.x, s60.y, s60.z, self.color));
+        }
+
+        // Scale and move vertices to correct world position
+
+        let transform: Mat4 = Mat4::from_cols(
+            Vec4::new(self.radius, 0.0, 0.0, 0.0,), 
+            Vec4::new(0.0, self.radius, 0.0, 0.0,), 
+            Vec4::new(0.0, 0.0, self.radius, 0.0,), 
+            self.pos.extend(1.0),
+        );
+
+        for i in 0..vertices.len() {
+            for j in 0..vertices[i].len() {
+                vertices[i][j].pos = transform * vertices[i][j].pos;
+            }
+        }
+
+        // construct triangles from those vertices
+        
+        for j in 0..8 {
+            for i in 1..vertices.len() - 1 {
+                triangles.push(Triangle::new(vertices[i][j + 1], vertices[i][j], vertices[i + 1][j + 1]));
+                triangles.push(Triangle::new(vertices[i][j], vertices[i][j + 1], vertices[i - 1][j]));
+            }
+        }
+
+        triangles
     }
 }
 
@@ -150,4 +242,14 @@ impl CosmicSimulator {
 
         Self { planets, sun, days_passed }
     }
+
+    pub fn orbit(&mut self, day: u32) {
+        for i in 0..self.planets.len() {
+            self.days_passed[i] += day;
+            self.planets[i].orbit(self.days_passed[i]);
+        }
+    }
+
+    
+
 }
