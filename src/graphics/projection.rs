@@ -5,12 +5,23 @@ use glam::{
 
 #[derive(Clone, Copy)]
 pub struct Camera {
+
+    /// up vector
     pub t: Vec4,
+
+    /// gaze vector
     pub g: Vec4,
+
+    /// right vector
     pub r: Vec4,
+
+    /// position of camera
     pub e: Vec4,
     
+    /// field of view (in radians)
     fov: f32,
+
+    /// aspect ratio (height / width of screen)
     aspect_ratio: f32,
 }
 

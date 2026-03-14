@@ -63,6 +63,10 @@ impl Rasterizer {
     }
 
     pub fn render_triangle(&mut self, &triangle: &RasterTriangle) {
+        if triangle.normal.z > 0.0 {
+            return;
+        }
+
         let (a, b, c): (Vec3, Vec3, Vec3) = (
             triangle.a.pos,
             triangle.b.pos,
