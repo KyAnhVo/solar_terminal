@@ -279,7 +279,7 @@ impl CosmicSimulator {
     pub fn calculate_triangles(&mut self, camera: Camera) -> Vec<Triangle> {
         let mut vec: Vec<Triangle> = vec![];
 
-        let l_ambient: Vec3 = Vec3::new(20.0, 20.0, 40.0);
+        let l_ambient: Vec3 = Vec3::new(20.0, 20.0, 40.0) * 2.0;
         for planet in &mut self.planets {
             let mut planet_tri = planet.to_triangles(8, 16);
 
