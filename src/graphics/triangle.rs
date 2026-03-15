@@ -43,6 +43,7 @@ impl Color {
          + self.g as f32 * 0.7152
          + self.b as f32 * 0.0722) / 255.0).powf(gamma)
     }
+
     pub fn edge_detection(self, others: &[Self]) -> bool{
         let others_count: i32 = others.len() as i32;
         let mut r: i32 = self.r as i32 * others_count;
@@ -58,6 +59,15 @@ impl Color {
         }
 
         r.abs() <= err_term || g.abs() <= err_term || b.abs() <= err_term
+    }
+
+    pub fn to_vec3(self)->Vec3 { Vec3::new(self.r as f32, self.g as f32, self.b as f32) }
+    pub fn from_vec3(v: Vec3)->Self {
+        Self::new(
+            v.x as u8,
+            v.y as u8,
+            v.z as u8
+        )
     }
 }
 
