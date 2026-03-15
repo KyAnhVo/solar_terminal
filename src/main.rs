@@ -32,9 +32,9 @@ fn test_planets(width: usize, height: usize, day_count_incremental: u32) {
     let mut cosmic_simulator = CosmicSimulator::new();
 
     let cam: Camera = Camera::new(
-        (CosmicBody::rot_x(f32::consts::PI / 1.0) * Vec3::Y).extend(0.0), 
-        (CosmicBody::rot_x(f32::consts::PI / 1.0) * Vec3::Z).extend(0.0), 
-        (CosmicBody::rot_x(f32::consts::PI / 1.0) * (Vec3::Z * -1100.0)).extend(1.0), 
+        (CosmicBody::rot_x(f32::consts::PI / 3.0) * Vec3::Y).extend(0.0), 
+        (CosmicBody::rot_x(f32::consts::PI / 3.0) * Vec3::Z).extend(0.0), 
+        (CosmicBody::rot_x(f32::consts::PI / 3.0) * (Vec3::Z * -1000.0)).extend(1.0), 
         f32::consts::PI / 4.0, 
         width as f32 / height as f32
     );

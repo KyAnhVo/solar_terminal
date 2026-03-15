@@ -161,7 +161,7 @@ pub struct CosmicSimulator {
     pub planets: Vec<CosmicBody>,
     pub sun: CosmicBody,
     pub days_passed: Vec<u32>,
-    pub ring_triangles: Vec<Triangle>,
+    pub orbit_triangles: Vec<Triangle>,
 }
 
 impl CosmicSimulator {
@@ -227,14 +227,46 @@ impl CosmicSimulator {
 
         let sun: CosmicBody = CosmicBody::new(Vec3::ZERO, 0, Vec3::ZERO, Color::new(255, 215, 0), 72.66 + 5.0);
 
-        let mut ring_triangles: Vec<Triangle> = vec![];
-
+        let mut orbit_triangles: Vec<Triangle> = vec![];
+        let orbit_line_counts: f32 = 50.0;
+        let orbit_color: Color = Color::WHITE;
+        let orbit_line_width: f32 = 2.0;
         for planet in &mut planets.iter() {
             // construct a ring with radius 5, then rotate it around the x axis.
-            let mut vertices: Vec<Vertex> = vec![];
+            let p1_0: Vec3 = planet.original_pos + Vec3::X * orbit_line_width / 2.0;
+            let p2_0: Vec3 = planet.original_pos - Vec3::X * orbit_line_width / 2.0;
+
+            for i in 0..=(orbit_line_counts as u32) {
+                let theta1: f32 = 2.0 * PI / orbit_line_counts * i as f32;
+                let theta2: f32 = 2.0 * PI / orbit_line_counts * (i + 1) as f32;
+                let p1_1: Vec3 = CosmicBody::rot_z(theta1) * p1_0;
+                let p2_1: Vec3 = CosmicBody::rot_z(theta1) * p2_0;
+                let p1_2: Vec3 = CosmicBody::rot_z(theta2) * p1_0;
+                let p2_2: Vec3 = CosmicBody::rot_z(theta2) * p2_0;
+                orbit_triangles.push(Triangle::new(
+                        Vertex::from_vec3(p1_1, orbit_color),
+                        Vertex::from_vec3(p1_2, orbit_color),
+                        Vertex::from_vec3(p2_2, orbit_color),
+                ));
+                orbit_triangles.push(Triangle::new(
+                        Vertex::from_vec3(p1_1, orbit_color),
+                        Vertex::from_vec3(p2_2, orbit_color),
+                        Vertex::from_vec3(p1_2, orbit_color),
+                ));
+                orbit_triangles.push(Triangle::new(
+                        Vertex::from_vec3(p1_1, orbit_color),
+                        Vertex::from_vec3(p2_2, orbit_color),
+                        Vertex::from_vec3(p2_1, orbit_color),
+                ));
+                orbit_triangles.push(Triangle::new(
+                        Vertex::from_vec3(p1_1, orbit_color),
+                        Vertex::from_vec3(p2_1, orbit_color),
+                        Vertex::from_vec3(p2_2, orbit_color),
+                ));
+            }
         }
 
-        Self { planets, sun, days_passed, ring_triangles }
+        Self { planets, sun, days_passed, orbit_triangles }
     }
 
     pub fn orbit(&mut self, day: u32) {
@@ -268,8 +300,8 @@ impl CosmicSimulator {
                 let k_diffuse: Vec3 = (Color::to_vec3(triangle.a.rgb) + 
                                 Color::to_vec3(triangle.b.rgb) +
                                 Color::to_vec3(triangle.c.rgb)) / 3.0;
-                let k_specular: f32 = 200.0;
-                let intensity: f32 = 40000.0;
+                let k_specular: f32 = 000.0;
+                let intensity: f32 = 100000.0;
 
 
                 let l_diffuse: Vec3 = k_diffuse * (intensity / r2) * n.dot(l).max(0.0);
@@ -315,6 +347,8 @@ impl CosmicSimulator {
             triangle.c.rgb = Color::from_vec3(final_rgb);
         }
         vec.append(&mut sun_tri);
+
+        vec.extend(self.orbit_triangles.iter().cloned());
 
         vec
     }

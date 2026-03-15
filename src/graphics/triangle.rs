@@ -88,6 +88,10 @@ impl Vertex {
         }
     }
 
+    pub fn from_vec3(v: Vec3, rgb: Color) -> Self {
+        Self::new(v.x, v.y, v.z, rgb)
+    }
+
     pub fn project(self, m_project: Mat4) -> RasterVertex {
         // note: m_project is m_perspective * m_view
         let pos: Vec4 = m_project * self.pos;
