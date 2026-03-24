@@ -4,7 +4,7 @@ use std::f32::consts::PI;
 use rand::{RngExt};
 use glam::{Mat3, Mat4, Vec3, Vec4, Vec4Swizzles};
 
-use crate::graphics::{projection::Camera, triangle::{Color, Triangle, Vertex}};
+use crate::graphics::{projection::Camera, triangle::{Color, Material, Triangle, Vertex}};
 
 pub struct CosmicBody {
     pub original_pos: Vec3,
@@ -29,6 +29,8 @@ pub struct CosmicBody {
 }
 
 impl CosmicBody {
+    const MAT: Material = Material { ks: 0.0, ka: 2.0, p: 3.0 };
+
     pub fn rot_x(theta: f32) -> Mat3 {
         let (sin, cos): (f32, f32) = (theta.sin(), theta.cos());
         Mat3::from_cols(
@@ -148,8 +150,8 @@ impl CosmicBody {
         // construct triangles from thos vertices
         for j in 0..longtitudes {
             for i in 1..(vertices.len() - 1) {
-                triangles.push(Triangle::new(vertices[i][j + 1], vertices[i][j], vertices[i + 1][j + 1]));
-                triangles.push(Triangle::new(vertices[i][j], vertices[i][j + 1], vertices[i - 1][j]));
+                triangles.push(Triangle::new(vertices[i][j + 1], vertices[i][j], vertices[i + 1][j + 1], Self::MAT));
+                triangles.push(Triangle::new(vertices[i][j], vertices[i][j + 1], vertices[i - 1][j], Self::MAT));
             }
         }
 
@@ -228,13 +230,15 @@ impl CosmicSimulator {
         let sun: CosmicBody = CosmicBody::new(Vec3::ZERO, 0, Vec3::ZERO, Color::new(255, 215, 0), 72.66 + 5.0);
 
         let mut orbit_triangles: Vec<Triangle> = vec![];
-        let orbit_line_counts: f32 = 50.0;
-        let orbit_color: Color = Color::WHITE;
-        let orbit_line_width: f32 = 2.0;
+        let orbit_line_counts: f32 = 1000.0;
+        let mut orbit_color: Color = Color::WHITE;
+        let orbit_line_width: f32 = 3.0;
         for planet in &mut planets.iter() {
             // construct a ring with radius 5, then rotate it around the x axis.
             let p1_0: Vec3 = planet.original_pos + Vec3::X * orbit_line_width / 2.0;
             let p2_0: Vec3 = planet.original_pos - Vec3::X * orbit_line_width / 2.0;
+
+            orbit_color = planet.color;
 
             for i in 0..=(orbit_line_counts as u32) {
                 let theta1: f32 = 2.0 * PI / orbit_line_counts * i as f32;
@@ -247,21 +251,25 @@ impl CosmicSimulator {
                         Vertex::from_vec3(p1_1, orbit_color),
                         Vertex::from_vec3(p1_2, orbit_color),
                         Vertex::from_vec3(p2_2, orbit_color),
+                        CosmicBody::MAT,
                 ));
                 orbit_triangles.push(Triangle::new(
                         Vertex::from_vec3(p1_1, orbit_color),
                         Vertex::from_vec3(p2_2, orbit_color),
                         Vertex::from_vec3(p1_2, orbit_color),
+                        CosmicBody::MAT
                 ));
                 orbit_triangles.push(Triangle::new(
                         Vertex::from_vec3(p1_1, orbit_color),
                         Vertex::from_vec3(p2_2, orbit_color),
                         Vertex::from_vec3(p2_1, orbit_color),
+                        CosmicBody::MAT
                 ));
                 orbit_triangles.push(Triangle::new(
                         Vertex::from_vec3(p1_1, orbit_color),
                         Vertex::from_vec3(p2_1, orbit_color),
                         Vertex::from_vec3(p2_2, orbit_color),
+                        CosmicBody::MAT
                 ));
             }
         }
@@ -352,5 +360,6 @@ impl CosmicSimulator {
 
         vec
     }
-
+    
 }
+

@@ -1,21 +1,34 @@
 use glam::{Mat4, Vec2, Vec3, Vec4, Vec4Swizzles};
 
+/// represents material constants
+#[derive(Clone, Copy)]
+pub struct Material {
+    pub ks: f32,    // specular coefficient
+    pub ka: f32,    // ambient coefficient
+    pub p: f32,     // shinniness exponent
+}
+
+impl Material {
+    pub fn new(ks: f32, ka: f32, p: f32) -> Self { Self {ks, ka, p} }
+}
+
 /// Represents the triangle abc
 #[derive(Clone, Copy)]
 pub struct Triangle {
     pub a: Vertex,
     pub b: Vertex,
     pub c: Vertex,
-
     pub normal: Vec4,
+
+    pub material: Material,
 }
 
 impl Triangle {
-    pub fn new(a: Vertex, b: Vertex, c: Vertex) -> Self {
+    pub fn new(a: Vertex, b: Vertex, c: Vertex, material: Material) -> Self {
         let edge1: Vec3 = b.pos.xyz() - a.pos.xyz();
         let edge2: Vec3 = c.pos.xyz() - a.pos.xyz();
         let normal: Vec4 = edge1.cross(edge2).normalize().extend(0.0);
-        Self { a, b, c, normal }
+        Self { a, b, c, normal, material }
     }
 }
 

@@ -63,9 +63,24 @@ impl Rasterizer {
     }
 
     pub fn render_triangle(&mut self, &triangle: &RasterTriangle) {
+        
         if triangle.normal.z > 0.0 {
             return;
         }
+        
+        if triangle.a.pos.x.abs() > 1.0 || triangle.b.pos.x.abs() > 1.0 || triangle.c.pos.x.abs() > 1.0 {
+            return;
+        }
+
+        if triangle.a.pos.y.abs() > 1.0 || triangle.b.pos.y.abs() > 1.0 || triangle.c.pos.y.abs() > 1.0 {
+            return;
+        }
+
+        if triangle.a.pos.z < -1.0 || triangle.b.pos.z < -1.0 || triangle.c.pos.z < -1.0 {
+            //return;
+        }
+
+        // can I do clipping here?
 
         let (a, b, c): (Vec3, Vec3, Vec3) = (
             triangle.a.pos,
