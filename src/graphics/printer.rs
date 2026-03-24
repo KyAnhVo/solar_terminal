@@ -27,6 +27,11 @@ impl Printer {
         }
     }
 
+    pub fn resize(&mut self, width: usize, height: usize) {
+        self.width = width;
+        self.height = height / 2;
+    }
+
     pub fn print(&mut self, color: &mut [Color]) {
         self.buff.clear();
         self.buff.extend_from_slice(Printer::START_SEQUENCE);

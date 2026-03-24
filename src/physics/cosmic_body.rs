@@ -29,7 +29,7 @@ pub struct CosmicBody {
 }
 
 impl CosmicBody {
-    const MAT: Material = Material { ks: 0.0, ka: 2.0, p: 3.0 };
+    const MAT: Material = Material { ks: Vec3::ZERO, ka: Vec3 {x: 2.0, y: 2.0, z: 2.0}, p: 3.0 };
 
     pub fn rot_x(theta: f32) -> Mat3 {
         let (sin, cos): (f32, f32) = (theta.sin(), theta.cos());
@@ -362,4 +362,3 @@ impl CosmicSimulator {
     }
     
 }
-

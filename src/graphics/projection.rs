@@ -79,6 +79,10 @@ impl Camera {
             Vec4::new(0.0,  0.0,    -n * f, 0.0),
         );
 
+        self.m_ortho(n, f) * m_persp_to_ortho
+    }
+
+    pub fn m_ortho(self, n: f32, f: f32) -> Mat4 {
         let t: f32 = self.fov.tan() / 2.0 * n.abs();
         let r: f32 = t * self.aspect_ratio;
         let b: f32 = -t;
@@ -97,7 +101,6 @@ impl Camera {
             Vec4::new(0.0,  0.0,    -(n + f) / 2.0,     1.0),
         );
 
-        let m_ortho: Mat4 = m_ortho_s * m_ortho_t;
-        m_ortho * m_persp_to_ortho
+        m_ortho_s * m_ortho_t
     }
 }
