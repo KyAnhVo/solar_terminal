@@ -22,14 +22,13 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    pub fn new(pos: Vec4, color: Vec3, no_shade: bool) -> Self {
+    pub fn new(pos: Vec3, color: Vec3, no_shade: bool) -> Self {
         assert!(0.0 <= color.x && color.x <= 1.0);
         assert!(0.0 <= color.y && color.y <= 1.0);
         assert!(0.0 <= color.z && color.z <= 1.0);
-        assert!(1.0 - f32::EPSILON <= pos.z && pos.z <= 1.0 + f32::EPSILON);
 
         Self {
-            pos,
+            pos: pos.extend(1.0),
             color,
             no_shade,
         }
@@ -62,8 +61,8 @@ impl RasterVertex {
         let pb: Vec2 = b.pos.xy();
         let pc: Vec2 = c.pos.xy();
 
-        // lte because higher z => further from screen
-        (pb - pa).perp_dot(pc - pa) <= 0.0
+        // gte because higher z => further from screen
+        (pb - pa).perp_dot(pc - pa) >= 0.0
     }
 
     pub fn is_inside(a: Self, b: Self, c: Self, p: Vec2) -> bool {
@@ -149,6 +148,38 @@ impl RasterVertex {
             a.color,
             b.color,
             c.color,
+            barycentric_coordinate,
+            inv_w,
+        )
+    }
+
+    pub fn interpolate_normals(
+        triangle: (RasterVertex, RasterVertex, RasterVertex),
+        normals: (Vec4, Vec4, Vec4),
+        barycentric_coordinate: (f32, f32, f32),
+        inv_w: f32,
+    ) -> Vec4 {
+        Self::interpolate::<Vec4>(
+            triangle,
+            normals.0,
+            normals.1,
+            normals.2,
+            barycentric_coordinate,
+            inv_w,
+        )
+    }
+
+    pub fn interpolate_position(
+        triangle: (RasterVertex, RasterVertex, RasterVertex),
+        world_space_triangle: (Vec4, Vec4, Vec4),
+        barycentric_coordinate: (f32, f32, f32),
+        inv_w: f32,
+    ) -> Vec4 {
+        Self::interpolate::<Vec4>(
+            triangle,
+            world_space_triangle.0,
+            world_space_triangle.1,
+            world_space_triangle.2,
             barycentric_coordinate,
             inv_w,
         )

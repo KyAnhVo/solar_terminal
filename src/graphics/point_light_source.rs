@@ -1,5 +1,6 @@
 use crate::graphics::{
     mesh::Mesh,
+    options::LightSourceShadingMode,
     projection::Camera,
     vertex::{Material, Vertex},
 };
@@ -14,25 +15,35 @@ pub struct PointLightSource {
     /// position of the light source in world space
     pub pos: Vec3,
     /// the mesh to render in place of the point light source
-    pub wrapper_mesh: Mesh,
-    /// intensity of diffuse term
+    pub wrapper_mesh: Option<Mesh>,
+    /// intensity of diffuse term (to other objects)
     pub diffuse_intensity: Vec3,
-    /// intensity of specular term
+    /// intensity of specular term (to other objects)
     pub specular_intensity: Vec3,
-    /// intensity of ambient term
+    /// intensity of ambient term (to other objects)
     pub ambient_intensity: Vec3,
+    /// the light source mesh's shining constant
+    /// matters when shading the light source itself
+    pub shining_constant: Vec3,
+    /// the shading mode to use when shading the light source itself
+    pub shading_mode: LightSourceShadingMode,
 }
 
 impl PointLightSource {
     pub fn new(
         pos: Vec3,
-        wrapper_mesh: Mesh,
+        wrapper_mesh: Option<Mesh>,
         diffuse_intensity: Vec3,
         specular_intensity: Vec3,
         ambient_intensity: Vec3,
+        shining_constant: Vec3,
+        shading_mode: LightSourceShadingMode,
     ) -> Self {
         assert!(
-            wrapper_mesh.no_shade == true,
+            match &wrapper_mesh {
+                Some(mesh) => !mesh.no_shade,
+                None => true,
+            },
             "wrapper mesh must have no_shade set to true"
         );
         Self {
@@ -41,13 +52,15 @@ impl PointLightSource {
             diffuse_intensity,
             specular_intensity,
             ambient_intensity,
+            shining_constant,
+            shading_mode,
         }
     }
 
     /// for Gouraud shading.
     /// These datas can be gathered simply from the Mesh object.
     pub fn shade_vertex(
-        self,
+        &self,
         vertex: Vertex,
         material: Material,
         normal: Vec4,
@@ -76,10 +89,9 @@ impl PointLightSource {
         ambient_term + diffuse_term + specular_term
     }
 
-    /// Shades a vertex using the Phong shading model.
-    /// This requires interpolated normal, world position and color values calculated prior.
-    pub fn phong_shade(
-        self,
+    /// Shades a point given position, normal, material, and original color
+    pub fn shade(
+        &self,
         pos: Vec3,
         normal: Vec4,
         material: Material,
@@ -108,15 +120,30 @@ impl PointLightSource {
         ambient_term + diffuse_term + specular_term
     }
 
-    /// Shade a vertex in the light source's wrapper mesh.
-    /// This uses only the normal and the camera's position.
-    pub fn phong_shade_light_source(
-        self,
-        pos: Vec3,
-        normal: Vec4,
-        material: Material,
-        color: Vec3,
-        cam: Camera,
-    ) -> Vec3 {
+    /// Shade the light source vertex (Gouraud) itself using either Lambertian or
+    /// Lambertian cosine law
+    pub fn shade_self_vertex(&self, vertex_index: usize, camera: &Camera) -> Option<Vec3> {
+        match &self.wrapper_mesh {
+            Some(mesh) => Some(self.shade_self(
+                mesh.vao[vertex_index].pos,
+                mesh.vertex_orthogonals[vertex_index],
+                camera,
+            )),
+            None => {
+                return None;
+            }
+        }
+    }
+
+    /// Shade the light source
+    pub fn shade_self(&self, pos: Vec4, normal: Vec4, camera: &Camera) -> Vec3 {
+        match self.shading_mode {
+            LightSourceShadingMode::Lambertian => self.shining_constant,
+            LightSourceShadingMode::LambertianCosineLaw => {
+                let n: Vec3 = normal.xyz();
+                let v: Vec3 = camera.e.xyz() - pos.xyz();
+                self.shining_constant * (n.dot(v).max(0.0))
+            }
+        }
     }
 }

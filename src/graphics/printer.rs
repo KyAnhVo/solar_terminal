@@ -18,11 +18,10 @@ impl Printer {
     const RAMP: &[u8] = b" .:-=+*#%@";
 
     pub fn new(printer_type: PrinterType, width: usize, height: usize) -> Self {
-        let v_height = height / 2; // Terminal rows for half-block rendering (estimatedly)
         Self {
             printer_type,
             width,
-            height: v_height,
+            height: height / 2,
             buff: vec![],
         }
     }
@@ -32,7 +31,7 @@ impl Printer {
         self.height = height / 2;
     }
 
-    pub fn print(&mut self, color: &mut [Vec3]) {
+    pub fn print(&mut self, color: &[Vec3]) {
         self.buff.clear();
         self.buff.extend_from_slice(Printer::START_SEQUENCE);
 
@@ -53,14 +52,13 @@ impl Printer {
                 let first_color: Vec3 = color[i_frame * self.width + j];
                 let second_color: Vec3 = color[(i_frame + 1) * self.width + j];
 
-                
                 match self.printer_type {
                     PrinterType::Ascii => {
                         // calculate avr color by add then div 2 will overflow,
                         // so we do this. Might induce error, but it's at most 2,
                         // so we dont really care.
                         let avr_color: Vec3 = (first_color + second_color) / 2.0;
-                        let luminance: f32  = avr_color.element_sum() / 3.0;
+                        let luminance: f32 = avr_color.element_sum() / 3.0;
                         let ramp_ind: usize = (luminance * (Self::RAMP.len() - 1) as f32) as usize;
                         let char_to_print: u8 = Self::RAMP[ramp_ind];
                         self.buff.push(char_to_print);
@@ -68,28 +66,28 @@ impl Printer {
                     PrinterType::Color => {
                         if curr_fg_color != first_color {
                             curr_fg_color = first_color;
-                            let color_code = format!("\x1b[38;2;{};{};{}m", 
-                                (curr_fg_color.x * 255.0) as u32, 
-                                (curr_fg_color.y * 255.0) as u32, 
-                                (curr_fg_color.z * 255.0) as u32);
+                            let color_code = format!(
+                                "\x1b[38;2;{};{};{}m",
+                                (curr_fg_color.x * 255.0) as u32,
+                                (curr_fg_color.y * 255.0) as u32,
+                                (curr_fg_color.z * 255.0) as u32
+                            );
                             self.buff.extend_from_slice(color_code.as_bytes());
                         }
                         if curr_bg_color != second_color {
                             curr_bg_color = second_color;
-                            let color_code = format!("\x1b[48;2;{};{};{}m", 
+                            let color_code = format!(
+                                "\x1b[48;2;{};{};{}m",
                                 (curr_bg_color.x * 255.0) as u32,
-                                (curr_bg_color.y * 255.0) as u32, 
+                                (curr_bg_color.y * 255.0) as u32,
                                 (curr_bg_color.z * 255.0) as u32
                             );
                             self.buff.extend_from_slice(color_code.as_bytes());
                         }
                         self.buff.extend_from_slice("▀".as_bytes());
                     }
-
                 };
             }
-
         }
     }
-
 }

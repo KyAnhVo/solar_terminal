@@ -27,7 +27,6 @@ fn test_rast(w: usize, h: usize) {
 
     let mut rast: Rasterizer = Rasterizer::new(w, h, Vec3::new(0.0, 0.1, 0.3));
     rast.clear();
-    rast.render_triangle(v1, v3, v2);
     thread::sleep(time::Duration::from_secs(2));
 
     let mut printer: Printer = Printer::new(PrinterType::Color, w, h);

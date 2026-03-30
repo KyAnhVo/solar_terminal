@@ -1,7 +1,8 @@
-pub mod pipeline;
+pub mod pipeline3d;
+
+pub mod options;
 
 // Shading
-pub mod mesh_light_source;
 pub mod point_light_source;
 pub mod shader;
 

@@ -1,7 +1,8 @@
 use crate::graphics::vertex::{Material, RasterVertex, Vertex};
-use glam::{Mat3, Vec3, Vec4, Vec4Swizzles};
+use glam::{Mat3, Mat4, Vec3, Vec4, Vec4Swizzles};
 
 /// An object to be rendered, represented by an EBO and a VAO
+#[derive(Clone)]
 pub struct Mesh {
     /// The origin of the mesh in object space
     pub origin: Vec3,
@@ -31,11 +32,6 @@ pub struct Mesh {
     /// Some objects might not want to be shaded (e.g. background image,
     /// 2D game with no shading, or a light source)
     pub no_shade: bool,
-
-    /// After calling finalize_normals, the orthogonals are normalized and
-    /// the mesh is ready for shading. No further changes to the mesh should
-    /// be made after this point.
-    pub finalized: bool,
 }
 
 impl Mesh {
@@ -49,7 +45,6 @@ impl Mesh {
             vertex_orthogonals: vec![],
             material,
             no_shade,
-            finalized: false,
         }
     }
 
@@ -92,6 +87,30 @@ impl Mesh {
             }
             self.vertex_orthogonals[i] = self.vertex_orthogonals[i].normalize();
         }
-        self.finalized = true;
+    }
+
+    /// return the matrix to transform vertex to world space
+    pub fn m_to_world_space(&self) -> Mat4 {
+        Mat4::from_cols(
+            self.orthonormal_basis.x_axis.extend(0.0),
+            self.orthonormal_basis.y_axis.extend(0.0),
+            self.orthonormal_basis.z_axis.extend(0.0),
+            self.origin.extend(1.0),
+        )
+    }
+
+    /// rotates the object/mesh's orthonormal basis
+    pub fn rotate(&mut self, m_rotate: Mat3) {
+        let det: f32 = m_rotate.determinant();
+        assert!(
+            1.0 - f32::EPSILON <= det && det <= 1.0 + f32::EPSILON,
+            "invalid rotational matrix"
+        );
+        self.orthonormal_basis = m_rotate * self.orthonormal_basis;
+    }
+
+    /// moves the object/mesh's origin
+    pub fn translate(&mut self, movement: Vec3) {
+        self.origin += movement;
     }
 }
