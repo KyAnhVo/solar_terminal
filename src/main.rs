@@ -12,6 +12,9 @@ use crate::graphics::vertex::{Material, RasterVertex, Vertex};
 use std::f32::consts::PI;
 use std::io::{Write, stdout};
 
+use std::thread;
+use std::time::Duration;
+
 use crossterm::terminal;
 use glam::{Mat3, Vec3, Vec4};
 
@@ -44,7 +47,7 @@ fn test_pipeline() {
         Camera::new(
             Vec3::Y.extend(0.0),
             Vec3::Z.extend(0.0),
-            (Vec3::Z * -5.0).extend(1.0),
+            (Vec3::Z * 5.0).extend(1.0),
             PI / 4.0,
         ),
     );
@@ -53,9 +56,9 @@ fn test_pipeline() {
         .add_point_light_source(PointLightSource::new(
             Vec3::Z * -5.0,
             None,
-            Vec3::new(1.0, 1.0, 1.0),
-            Vec3::new(0.8, 0.8, 0.8),
-            Vec3::new(0.1, 0.1, 0.1),
+            Vec3::new(1.0, 1.0, 1.0) * 0.5,
+            Vec3::new(0.8, 0.8, 0.8) * 0.5,
+            Vec3::new(0.1, 0.1, 0.1) * 0.5,
             Vec3::ZERO,
             LightSourceShadingMode::Lambertian,
         ));
@@ -82,10 +85,17 @@ fn test_pipeline() {
     mesh.create_sphere(1.0, Vec3::new(1.0, 0.76, 0.33));
     mesh.finalize_normals();
 
+    // test settings
+    let is_debug: bool = true;
+
     loop {
         pipeline.resize();
         pipeline.rasterizer.clear();
-        pipeline.render_mesh(&mut mesh, ShadingMode::Phong);
+        pipeline.render_mesh(&mut mesh, ShadingMode::Phong, is_debug);
+
+        if is_debug {
+            thread::sleep(Duration::from_secs(2));
+        }
         pipeline.print();
     }
 }

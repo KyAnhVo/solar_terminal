@@ -86,7 +86,7 @@ impl Camera {
         let l: f32 = -r;
 
         let m_ortho: Mat4 = self.m_ortho(l, r, b, t, n, f);
-        m_ortho * m_persp_to_ortho
+        m_ortho * m_persp_to_ortho * m_persp_to_ortho
     }
 
     pub fn m_ortho(self, l: f32, r: f32, b: f32, t: f32, n: f32, f: f32) -> Mat4 {

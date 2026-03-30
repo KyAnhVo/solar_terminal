@@ -68,9 +68,16 @@ impl Rasterizer {
         }
     }
 
-    pub fn rasterize_mesh(&mut self, mesh: &Mesh, shader: &Shader, camera: Camera, is_phong: bool) {
+    pub fn rasterize_mesh(
+        &mut self,
+        mesh: &Mesh,
+        shader: &Shader,
+        camera: Camera,
+        is_phong: bool,
+        is_debug: bool,
+    ) {
         for i in 0..(mesh.ebo.len() / 3) {
-            self.rasterize_triangle(mesh, 3 * i, shader, camera, is_phong);
+            self.rasterize_triangle(mesh, 3 * i, shader, camera, is_phong, is_debug);
         }
     }
 
@@ -81,6 +88,7 @@ impl Rasterizer {
         shader: &Shader,
         camera: Camera,
         is_phong: bool,
+        is_debug: bool,
     ) {
         let (i1, i2, i3): (usize, usize, usize) = (
             mesh.ebo[start_ind],
@@ -165,6 +173,24 @@ impl Rasterizer {
                     .xyz();
                     shader.shade_point_phong(pos, n, mesh.material, kd, camera)
                 };
+
+                if is_debug {
+                    println!(
+                        "alpha: {}, beta: {}, gamma: {}",
+                        barycentric_coordinate.0,
+                        barycentric_coordinate.1,
+                        barycentric_coordinate.2
+                    );
+                    println!(
+                        "a.invw: {}, bb.invw: {}, c.invw: {} -> new.invw: {}",
+                        ra.inv_w, rb.inv_w, rc.inv_w, p_inv_w
+                    );
+                    println!(
+                        "ra {}, rb {}, rc {} -> new {}",
+                        ra.color, rb.color, rc.color, color
+                    );
+                    println!();
+                }
                 self.draw_pixel((i, j), z, color);
             }
         }

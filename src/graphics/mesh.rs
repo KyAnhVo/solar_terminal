@@ -141,7 +141,7 @@ impl Mesh {
 
                 let pos = Vec3::new(x, y, z);
 
-                self.vao.push(Vertex::new(pos, Vec3::ONE, self.no_shade));
+                self.vao.push(Vertex::new(pos, color, self.no_shade));
 
                 self.vertex_orthogonals.push(pos.extend(0.0).normalize());
             }

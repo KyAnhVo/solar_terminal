@@ -113,6 +113,7 @@ impl PointLightSource {
         let ia: Vec3 = self.ambient_intensity;
         let id: Vec3 = self.diffuse_intensity;
         let is: Vec3 = self.specular_intensity;
+
         let ambient_term: Vec3 = ka * ia;
         let diffuse_term: Vec3 = kd * (id / r2) * (n.dot(l)).max(0.0);
         let specular_term: Vec3 = ks * (is / r2) * (n.dot(h)).max(0.0).powf(p);
