@@ -36,7 +36,7 @@ fn test_rast(w: usize, h: usize) {
     rast.clear();
 
     let mut printer: Printer = Printer::new(PrinterType::Color, w, h);
-    printer.print(&mut rast.frame_buff);
+    printer.print(&rast.frame_buff);
     stdout().write_all(&printer.buff).unwrap();
 }
 
@@ -46,15 +46,15 @@ fn test_pipeline() {
         PrinterType::Color,
         Camera::new(
             Vec3::Y.extend(0.0),
-            Vec3::Z.extend(0.0),
-            (Vec3::Z * 5.0).extend(1.0),
+            Vec3::Z.extend(0.0) * 1.0,
+            (Vec3::Z * -10.0).extend(1.0),
             PI / 4.0,
         ),
     );
     pipeline
         .shader
         .add_point_light_source(PointLightSource::new(
-            Vec3::Z * -5.0,
+            Vec3::ZERO,
             None,
             Vec3::new(1.0, 1.0, 1.0) * 0.5,
             Vec3::new(0.8, 0.8, 0.8) * 0.5,
@@ -79,23 +79,24 @@ fn test_pipeline() {
             },
             p: 50.0,
         },
-        true,
+        false,
     );
 
     mesh.create_sphere(1.0, Vec3::new(1.0, 0.76, 0.33));
     mesh.finalize_normals();
 
     // test settings
-    let is_debug: bool = true;
+    let is_debug: bool = false;
 
     loop {
         pipeline.resize();
         pipeline.rasterizer.clear();
-        pipeline.render_mesh(&mut mesh, ShadingMode::Phong, is_debug);
+        pipeline.render_mesh(&mut mesh, ShadingMode::Gouraud, is_debug);
 
         if is_debug {
             thread::sleep(Duration::from_secs(2));
         }
         pipeline.print();
+        thread::sleep(Duration::from_millis(30));
     }
 }

@@ -87,9 +87,9 @@ impl RasterVertex {
         let area: f32 = (pb - pa).perp_dot(pc - pa);
 
         (
-            (pb - pa).perp_dot(p - pa) / area,
-            (pc - pb).perp_dot(p - pb) / area,
-            (pa - pc).perp_dot(p - pc) / area,
+            (pb - p).perp_dot(pc - p) / area,
+            (pc - p).perp_dot(pa - p) / area,
+            (pa - p).perp_dot(pb - p) / area,
         )
     }
 
@@ -118,7 +118,7 @@ impl RasterVertex {
         let (a, b, c): (RasterVertex, RasterVertex, RasterVertex) = triangle;
         let (alpha, beta, gamma): (f32, f32, f32) = barycentric_coordinate;
 
-        (a_val / a.inv_w * alpha + b_val / b.inv_w * beta + c_val / c.inv_w * gamma) / inv_w
+        (a_val * a.inv_w * alpha + b_val * b.inv_w * beta + c_val * c.inv_w * gamma) / inv_w
     }
 
     pub fn interpolate_z(
@@ -127,6 +127,9 @@ impl RasterVertex {
         inv_w: f32,
     ) -> f32 {
         let (a, b, c): (RasterVertex, RasterVertex, RasterVertex) = triangle;
+        let (alpha, beta, gamma): (f32, f32, f32) = barycentric_coordinate;
+        alpha * a.pos.z + beta * b.pos.z + gamma * c.pos.z
+        /*
         Self::interpolate::<f32>(
             triangle,
             a.pos.z,
@@ -135,6 +138,7 @@ impl RasterVertex {
             barycentric_coordinate,
             inv_w,
         )
+        */
     }
 
     pub fn interpolate_color(
